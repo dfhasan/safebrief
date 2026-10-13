@@ -35,6 +35,11 @@ return [
         ],
     ],
 
+    'safebrief' => [
+        // Where managers write to keep SafeBrief after the trial.
+        'contact_email' => env('SAFEBRIEF_CONTACT_EMAIL', 'hello@safebrief.test'),
+    ],
+
     'ai' => [
         'driver' => env('AI_DRIVER', 'fake'),
     ],

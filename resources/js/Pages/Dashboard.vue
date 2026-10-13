@@ -72,7 +72,7 @@ const totals = computed(() => {
                         :href="route('briefings.index')"
                         class="rounded-full bg-hazard-wash px-3 py-1 text-sm font-semibold text-ink hover:bg-hazard"
                     >
-                        {{ $t(':count drafts to review', { count: draftCount }) }}
+                        {{ $tc(':count drafts to review', draftCount, { count: draftCount }) }}
                     </Link>
                 </div>
 

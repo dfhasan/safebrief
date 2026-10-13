@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -34,6 +35,9 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        // People type capitals in emails; store them lower-case instead of rejecting the form.
+        $request->merge(['email' => Str::lower(trim((string) $request->input('email')))]);
+
         $request->validate([
             'company_name' => 'required|string|max:255',
             'name' => 'required|string|max:255',

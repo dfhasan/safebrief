@@ -7,9 +7,37 @@ import LanguageSwitch from '@/Components/LanguageSwitch.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import StepTrail from '@/Components/StepTrail.vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { translate, translateCount } from '@/i18n';
 
 const showingNavigationDropdown = ref(false);
+const page = usePage();
+
+const trial = computed(() => page.props.trial);
+const trialLabel = computed(() => {
+    const tr = trial.value;
+    if (!tr) return '';
+    const props = page.props;
+    if (!tr.active) return translate(props.translations, 'Trial ended');
+    if (tr.daysLeft <= 1) return translate(props.translations, 'Last day of your trial');
+    return translateCount(props.translations, props.locale, ':days days left in trial', tr.daysLeft, { days: tr.daysLeft });
+});
+// Warn from 3 days before the end, so the lock-out is never a surprise.
+const endingSoon = computed(() => trial.value?.active && trial.value.daysLeft <= 3);
+const endsOn = computed(() =>
+    trial.value
+        ? new Date(trial.value.endsAt).toLocaleString(page.props.locale === 'ar' ? 'ar' : 'en-GB', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+              hour: '2-digit',
+              minute: '2-digit',
+          })
+        : '',
+);
+// Once the trial has ended every app page leads to the trial-ended page, so only offer what still works.
+const locked = computed(() => trial.value && !trial.value.active);
 
 const nav = [
     { label: 'Dashboard', route: 'dashboard', active: 'dashboard' },
@@ -31,7 +59,7 @@ const nav = [
 
                         <div class="hidden items-stretch gap-6 sm:flex">
                             <NavLink
-                                v-for="item in nav"
+                                v-for="item in locked ? [] : nav"
                                 :key="item.route"
                                 :href="route(item.route)"
                                 :active="route().current(item.active)"
@@ -43,14 +71,11 @@ const nav = [
 
                     <div class="hidden items-center gap-3 sm:flex">
                         <span
-                            v-if="$page.props.trial"
+                            v-if="trial"
                             class="text-sm"
-                            :class="$page.props.trial.active ? 'text-white/70' : 'font-semibold text-hazard'"
+                            :class="trial.active && !endingSoon ? 'text-white/70' : 'font-semibold text-hazard'"
                         >
-                            <template v-if="$page.props.trial.active">
-                                {{ $t(':days days left in trial', { days: $page.props.trial.daysLeft }) }}
-                            </template>
-                            <template v-else>{{ $t('Trial ended') }}</template>
+                            {{ trialLabel }}
                         </span>
 
                         <LanguageSwitch />
@@ -112,7 +137,7 @@ const nav = [
             <div v-show="showingNavigationDropdown" class="border-t border-white/10 sm:hidden">
                 <div class="py-2">
                     <ResponsiveNavLink
-                        v-for="item in nav"
+                        v-for="item in locked ? [] : nav"
                         :key="item.route"
                         :href="route(item.route)"
                         :active="route().current(item.active)"
@@ -124,19 +149,28 @@ const nav = [
                     <div class="px-4 pb-2">
                         <div class="font-semibold">{{ $page.props.auth.user.name }}</div>
                         <div class="text-sm text-white/60">{{ $page.props.auth.user.email }}</div>
-                        <div v-if="$page.props.trial" class="mt-1 text-sm text-white/60">
-                            {{ $page.props.trial.company }} ·
-                            <template v-if="$page.props.trial.active">
-                                {{ $t(':days days left in trial', { days: $page.props.trial.daysLeft }) }}
-                            </template>
-                            <template v-else>{{ $t('Trial ended') }}</template>
-                        </div>
+                        <div v-if="trial" class="mt-1 text-sm text-white/60">{{ trial.company }} · {{ trialLabel }}</div>
                     </div>
                     <ResponsiveNavLink :href="route('profile.edit')">{{ $t('Profile') }}</ResponsiveNavLink>
                     <ResponsiveNavLink :href="route('logout')" method="post" as="button">{{ $t('Log out') }}</ResponsiveNavLink>
                 </div>
             </div>
         </nav>
+
+        <div v-if="endingSoon" class="border-b border-hazard-deep/40 bg-hazard-wash" role="status">
+            <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-3 sm:px-6 lg:px-8">
+                <p class="text-sm text-ink">
+                    <strong>{{ $t('Your free trial ends on :date.', { date: endsOn }) }}</strong>
+                    {{ $t('Your briefings and crew results are kept after that.') }}
+                </p>
+                <a
+                    :href="`mailto:${trial.contactEmail}?subject=${encodeURIComponent('SafeBrief: ' + trial.company)}`"
+                    class="inline-flex min-h-[2.5rem] items-center rounded-md bg-ink px-4 text-sm font-semibold text-white hover:bg-ink-soft"
+                >
+                    {{ $t('Keep SafeBrief') }}
+                </a>
+            </div>
+        </div>
 
         <StepTrail />
 

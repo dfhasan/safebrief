@@ -39,6 +39,8 @@ class HandleInertiaRequests extends Middleware
                 'company' => $company->name,
                 'daysLeft' => $company->trialDaysLeft(),
                 'active' => $company->trialActive(),
+                'endsAt' => $company->trial_ends_at->toIso8601String(),
+                'contactEmail' => config('services.safebrief.contact_email'),
             ] : null,
             'flash' => [
                 // Breeze uses slugs like "profile-updated" that its forms show themselves; only pass sentences.
@@ -49,7 +51,7 @@ class HandleInertiaRequests extends Middleware
             'locale' => fn () => app()->getLocale(),
             'dir' => fn () => in_array(app()->getLocale(), SetLocale::RTL, true) ? 'rtl' : 'ltr',
             'translations' => fn () => $this->translations(app()->getLocale()),
-            'onboarding' => fn () => ($company = $request->user()?->company) ? Onboarding::for($company) : null,
+            'onboarding' => fn () => ($company = $request->user()?->company) && $company->trialActive() ? Onboarding::for($company) : null,
         ];
     }
 

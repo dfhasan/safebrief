@@ -5,7 +5,8 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
-        "demo:gif": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/record-demo.ts"
+        "demo:gif": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/record-demo.ts",
+        "demo:trial": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/record-trial-demo.ts"
     },
     "devDependencies": {
         "@inertiajs/vue3": "^2.0.0",

@@ -25,6 +25,12 @@ class LoginRequest extends FormRequest
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
+    protected function prepareForValidation(): void
+    {
+        // Emails are stored lower-case, so match them regardless of how they were typed.
+        $this->merge(['email' => Str::lower(trim((string) $this->input('email')))]);
+    }
+
     public function rules(): array
     {
         return [

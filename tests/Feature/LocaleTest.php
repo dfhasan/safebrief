@@ -15,7 +15,7 @@ class LocaleTest extends TestCase
     {
         $this->get('/login')
             ->assertSee('dir="ltr"', false)
-            ->assertInertia(fn (Assert $page) => $page->where('locale', 'en')->where('dir', 'ltr')->where('translations', []));
+            ->assertInertia(fn (Assert $page) => $page->where('locale', 'en')->where('dir', 'ltr')->where('translations.:count drafts to review|one', ':count draft to review'));
     }
 
     public function test_switching_to_arabic_sets_rtl_and_sends_translations(): void
@@ -51,14 +51,22 @@ class LocaleTest extends TestCase
 
     public function test_every_arabic_translation_keeps_its_placeholders(): void
     {
-        $ar = json_decode(file_get_contents(lang_path('ar.json')), true);
+        foreach (['ar', 'en'] as $locale) {
+            foreach (json_decode(file_get_contents(lang_path("{$locale}.json")), true) as $key => $translated) {
+                preg_match_all('/:[a-z]+/', $key, $expected);
+                preg_match_all('/:[a-z]+/', $translated, $actual);
 
-        foreach ($ar as $en => $translated) {
-            preg_match_all('/:[a-z]+/', $en, $expected);
-            preg_match_all('/:[a-z]+/', $translated, $actual);
-            sort($expected[0]);
-            sort($actual[0]);
-            $this->assertSame($expected[0], $actual[0], "Placeholders differ for \"{$en}\"");
+                if (str_contains($key, '|')) {
+                    // Plural forms may spell the number out (Arabic "يومان" = two days), so they can drop a placeholder.
+                    $this->assertEmpty(array_diff($actual[0], $expected[0]), "Unknown placeholder in {$locale} \"{$key}\"");
+
+                    continue;
+                }
+
+                sort($expected[0]);
+                sort($actual[0]);
+                $this->assertSame($expected[0], $actual[0], "Placeholders differ in {$locale} \"{$key}\"");
+            }
         }
     }
 }

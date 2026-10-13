@@ -8,6 +8,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\NoReferrer;
 use App\Http\Middleware\SetLocale;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -34,7 +35,13 @@ Route::middleware(NoReferrer::class)->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/trial-expired', fn () => Inertia::render('TrialExpired'))->name('trial.expired');
+    Route::get('/trial-expired', function (Request $request) {
+        if ($request->user()->company?->trialActive()) {
+            return redirect()->route('dashboard');
+        }
+
+        return Inertia::render('TrialExpired');
+    })->name('trial.expired');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
