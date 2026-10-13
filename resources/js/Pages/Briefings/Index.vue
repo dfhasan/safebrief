@@ -44,7 +44,7 @@ const pct = (done, total) => (total ? Math.round((done / total) * 100) : 0);
                             class="grid gap-3 px-5 py-4 hover:bg-paper/60 sm:grid-cols-[minmax(0,1fr)_12rem_7rem] sm:items-center"
                         >
                             <div class="min-w-0">
-                                <p class="truncate font-semibold">{{ b.title }}</p>
+                                <p class="truncate font-semibold" dir="auto">{{ b.title }}</p>
                                 <p class="text-sm text-ink-muted">
                                     {{ b.status === 'published' ? $t('Published :date', { date: day(b.published_at) }) : $t('Drafted :date', { date: day(b.created_at) }) }}
                                 </p>

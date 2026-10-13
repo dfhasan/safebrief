@@ -26,9 +26,6 @@ export default {
                 sans: ['"IBM Plex Sans"', '"IBM Plex Sans Arabic"', ...defaultTheme.fontFamily.sans],
                 arabic: ['"IBM Plex Sans Arabic"', '"IBM Plex Sans"', ...defaultTheme.fontFamily.sans],
             },
-            backgroundImage: {
-                hazard: 'repeating-linear-gradient(-45deg, #FFC20E 0 10px, #15233B 10px 20px)',
-            },
         },
     },
 

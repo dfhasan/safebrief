@@ -34,7 +34,7 @@ const useExample = () => {
                 <p class="mt-1 text-sm text-ink-soft">
                     {{ $t('Paste it as written. Remove names and personal details first.') }}
                 </p>
-                <textarea
+                <textarea dir="auto"
                     id="incident_text"
                     v-model="form.incident_text"
                     rows="12"

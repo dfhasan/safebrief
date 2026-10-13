@@ -58,8 +58,8 @@ class BriefingController extends Controller
 
         Funnel::record($briefing->company_id, 'first_briefing');
 
-        return redirect()->route('briefings.show', $briefing)
-            ->with('status', __('Draft ready. Review it carefully before publishing.'));
+        // The draft page itself explains what to check, so no extra flash message here.
+        return redirect()->route('briefings.show', $briefing);
     }
 
     public function show(Briefing $briefing): Response
@@ -73,6 +73,7 @@ class BriefingController extends Controller
             ],
             'links' => $briefing->crewLinks->map(fn ($link) => [
                 'id' => $link->id,
+                'crew_member_id' => $link->crew_member_id,
                 'crew_member' => $link->crewMember->name,
                 'url' => route('crew.show', $link->token),
                 'opened_at' => $link->opened_at,

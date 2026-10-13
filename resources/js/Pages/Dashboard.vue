@@ -18,7 +18,8 @@ const when = (at) =>
 const totals = computed(() => {
     const sent = props.briefings.reduce((n, b) => n + b.crew_links_count, 0);
     const done = props.briefings.reduce((n, b) => n + b.completed_count, 0);
-    return { sent, done, rate: pct(done, sent) };
+    const scored = props.briefings.reduce((n, b) => n + (b.average_score !== null ? Number(b.average_score) * b.completed_count : 0), 0);
+    return { published: props.briefings.length, sent, done, rate: pct(done, sent), score: done ? (scored / done).toFixed(1) : null };
 });
 </script>
 
@@ -30,9 +31,6 @@ const totals = computed(() => {
             <div class="flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <h1 class="text-2xl font-bold">{{ $t('Dashboard') }}</h1>
-                    <p v-if="totals.sent" class="mt-1 text-ink-soft">
-                        {{ $t(':done of :sent crew links completed (:rate%)', totals) }}
-                    </p>
                 </div>
                 <Link
                     :href="route('briefings.create')"
@@ -43,7 +41,29 @@ const totals = computed(() => {
             </div>
         </template>
 
-        <div class="mx-auto mt-6 grid max-w-6xl gap-6 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
+        <dl class="mx-auto mt-6 grid max-w-6xl grid-cols-2 gap-px overflow-hidden px-4 sm:px-6 lg:grid-cols-4 lg:px-8">
+            <div class="border border-line bg-white px-5 py-4 max-lg:rounded-ss-lg lg:rounded-s-lg">
+                <dt class="text-sm text-ink-soft">{{ $t('Published briefings') }}</dt>
+                <dd class="mt-1 text-2xl font-bold tabular-nums">{{ totals.published }}</dd>
+            </div>
+            <div class="border border-line bg-white px-5 py-4 max-lg:rounded-se-lg">
+                <dt class="text-sm text-ink-soft">{{ $t('Crew links sent') }}</dt>
+                <dd class="mt-1 text-2xl font-bold tabular-nums">{{ totals.sent }}</dd>
+            </div>
+            <div class="border border-line bg-white px-5 py-4 max-lg:rounded-es-lg">
+                <dt class="text-sm text-ink-soft">{{ $t('Completed') }}</dt>
+                <dd class="mt-1 text-2xl font-bold tabular-nums">
+                    {{ totals.done }}
+                    <span v-if="totals.sent" class="text-base font-semibold text-signal">{{ totals.rate }}%</span>
+                </dd>
+            </div>
+            <div class="border border-line bg-white px-5 py-4 max-lg:rounded-ee-lg lg:rounded-e-lg">
+                <dt class="text-sm text-ink-soft">{{ $t('Average score') }}</dt>
+                <dd class="mt-1 text-2xl font-bold tabular-nums">{{ totals.score !== null ? totals.score + ' / 3' : '–' }}</dd>
+            </div>
+        </dl>
+
+        <div class="mx-auto mt-6 grid max-w-6xl items-start gap-6 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
             <section class="panel lg:col-span-2" :aria-label="$t('Briefing completion')">
                 <div class="flex items-center justify-between border-b border-line px-5 py-4">
                     <h2 class="font-bold">{{ $t('Briefing completion') }}</h2>
@@ -73,7 +93,7 @@ const totals = computed(() => {
                     <li v-for="b in briefings" :key="b.id">
                         <Link :href="route('briefings.show', b.id)" class="block px-5 py-4 hover:bg-paper/60">
                             <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                                <span class="font-semibold">{{ b.title }}</span>
+                                <span class="font-semibold" dir="auto">{{ b.title }}</span>
                                 <span class="text-sm tabular-nums text-ink-soft">
                                     {{ $t(':done / :total completed', { done: b.completed_count, total: b.crew_links_count }) }}
                                     <template v-if="b.average_score !== null">

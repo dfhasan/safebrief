@@ -21,6 +21,9 @@ A manager turns an incident report into a crew briefing with a 3-question check;
 6. **Trial gate.** App routes sit behind the `trial` middleware (`EnsureTrialActive`, 14 days from sign-up). Crew links must keep working after a trial expires.
 7. **Funnel.** Record steps with `App\Support\Funnel::record()` (once per company): `signed_up → first_briefing → published → crew_invited → first_completion`.
 
+8. **English + Arabic.** Every UI string goes through `$t('English text')` (Vue) or `__('English text')` (PHP), with the Arabic in `lang/ar.json` (validation in `lang/ar/*.php`). Keep `:placeholders` identical — `LocaleTest` checks this. Use logical Tailwind classes (`ms-`, `pe-`, `start-`, `text-start`) so RTL works, and put `dir="auto"` on elements that show user-written text.
+9. **Setup trail.** `App\Support\Onboarding` decides the manager's next step (crew → report → publish → invite → first completion); `StepTrail.vue` shows it. New activation steps go there, not in ad-hoc banners.
+
 ## Working agreement
 
 - Plan first, then small diffs. Write or update a test with every behaviour change.

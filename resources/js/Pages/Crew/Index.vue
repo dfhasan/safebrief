@@ -4,51 +4,94 @@ import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import { useT } from '@/i18n';
 
 defineProps({ crewMembers: Array });
 
+const t = useT();
+const nameInput = ref(null);
 const form = useForm({ name: '', contact: '' });
-const add = () => form.post(route('crew.store'), { preserveScroll: true, onSuccess: () => form.reset() });
+const add = () =>
+    form.post(route('crew.store'), {
+        preserveScroll: true,
+        onSuccess: () => {
+            form.reset();
+            nameInput.value?.focus();
+        },
+    });
 const remove = (m) => {
-    if (confirm(`Remove ${m.name}? Their briefing links stop working.`)) {
+    if (confirm(t('Remove :name? Their briefing links stop working and their answers are deleted.', { name: m.name }))) {
         router.delete(route('crew.destroy', m.id), { preserveScroll: true });
     }
 };
 </script>
 
 <template>
-    <Head title="Crew" />
+    <Head :title="$t('Crew')" />
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">Crew</h2>
+            <h1 class="text-2xl font-bold">{{ $t('Crew') }}</h1>
+            <p class="mt-1 max-w-2xl text-ink-soft">
+                {{ $t('The people who receive your briefings. They never need an account: each one gets a personal link.') }}
+            </p>
         </template>
 
-        <div class="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-            <form class="flex flex-wrap items-start gap-3 rounded-lg bg-white p-6 shadow-sm" @submit.prevent="add">
-                <div class="min-w-[10rem] flex-1">
-                    <TextInput v-model="form.name" placeholder="Name" class="block w-full" required />
-                    <InputError :message="form.errors.name" />
+        <div class="mx-auto mt-6 grid max-w-6xl gap-6 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
+            <form class="panel self-start p-5" @submit.prevent="add">
+                <h2 class="font-bold">{{ $t('Add a crew member') }}</h2>
+                <div class="mt-4 space-y-4">
+                    <div>
+                        <label for="crew-name" class="block text-sm font-semibold">{{ $t('Name') }}</label>
+                        <TextInput id="crew-name" ref="nameInput" v-model="form.name" class="mt-1.5" :placeholder="$t('Name')" required />
+                        <InputError :message="form.errors.name" />
+                    </div>
+                    <div>
+                        <label for="crew-contact" class="block text-sm font-semibold">
+                            {{ $t('Phone or email') }} <span class="font-normal text-ink-muted">({{ $t('optional') }})</span>
+                        </label>
+                        <TextInput id="crew-contact" v-model="form.contact" class="mt-1.5" :placeholder="$t('Phone or email (optional)')" />
+                        <InputError :message="form.errors.contact" />
+                    </div>
+                    <PrimaryButton class="w-full" :disabled="form.processing">{{ $t('Add to crew') }}</PrimaryButton>
                 </div>
-                <div class="min-w-[10rem] flex-1">
-                    <TextInput v-model="form.contact" placeholder="Phone or email (optional)" class="block w-full" />
-                    <InputError :message="form.errors.contact" />
-                </div>
-                <PrimaryButton :disabled="form.processing">Add</PrimaryButton>
             </form>
 
-            <div class="rounded-lg bg-white shadow-sm">
-                <p v-if="!crewMembers.length" class="p-6 text-sm text-gray-600">No crew members yet.</p>
-                <ul v-else class="divide-y divide-gray-100">
-                    <li v-for="m in crewMembers" :key="m.id" class="flex items-center justify-between px-6 py-3 text-sm">
-                        <span>
-                            <span class="font-medium text-gray-900">{{ m.name }}</span>
-                            <span v-if="m.contact" class="ms-2 text-gray-500">{{ m.contact }}</span>
-                        </span>
-                        <button type="button" class="text-red-600 hover:underline" @click="remove(m)">Remove</button>
+            <section class="panel lg:col-span-2">
+                <div class="border-b border-line px-5 py-4">
+                    <h2 class="font-bold">
+                        {{ $t('Your crew') }}
+                        <span v-if="crewMembers.length" class="font-normal text-ink-muted">({{ crewMembers.length }})</span>
+                    </h2>
+                </div>
+
+                <div v-if="!crewMembers.length" class="px-5 py-12 text-center">
+                    <p class="font-semibold">{{ $t('No crew members yet') }}</p>
+                    <p class="mx-auto mt-1 max-w-sm text-sm text-ink-soft">
+                        {{ $t('Add the people on your site or vessel. A name is enough to start.') }}
+                    </p>
+                </div>
+
+                <ul v-else class="divide-y divide-line">
+                    <li v-for="m in crewMembers" :key="m.id" class="flex items-center justify-between gap-4 px-5 py-3">
+                        <div class="min-w-0">
+                            <p class="truncate font-semibold" dir="auto">{{ m.name }}</p>
+                            <p class="truncate text-sm text-ink-muted">
+                                <template v-if="m.contact" dir="auto">{{ m.contact }} · </template>
+                                {{ $t(':done of :total briefings completed', { done: m.completed_count, total: m.crew_links_count }) }}
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            class="shrink-0 rounded-md px-3 py-2 text-sm font-medium text-alarm hover:bg-alarm-wash"
+                            @click="remove(m)"
+                        >
+                            {{ $t('Remove') }}
+                        </button>
                     </li>
                 </ul>
-            </div>
+            </section>
         </div>
     </AuthenticatedLayout>
 </template>
