@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    [dir='rtl'] body {
+        @apply font-arabic;
+    }
+
+    :focus-visible {
+        @apply outline-none ring-2 ring-hazard ring-offset-2 ring-offset-white;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+}
+
+@layer components {
+    .field {
+        @apply block w-full rounded-md border-line bg-white text-ink shadow-none placeholder:text-ink-muted focus:border-ink focus:ring-1 focus:ring-ink disabled:border-transparent disabled:bg-paper disabled:text-ink;
+    }
+
+    .panel {
+        @apply rounded-lg border border-line bg-white;
+    }
+}
