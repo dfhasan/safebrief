@@ -30,6 +30,17 @@ class LocaleTest extends TestCase
                 ->where('translations.Log in', 'تسجيل الدخول'));
     }
 
+    public function test_language_choice_survives_logging_out(): void
+    {
+        $user = User::factory()->create();
+
+        $cookie = $this->actingAs($user)->from('/dashboard')->get('/locale/ar')->assertCookie('locale', 'ar')->getCookie('locale');
+        $this->post('/logout');
+
+        $this->withCookie('locale', $cookie->getValue())->get('/login')
+            ->assertInertia(fn (Assert $page) => $page->where('locale', 'ar')->where('dir', 'rtl'));
+    }
+
     public function test_unsupported_locale_is_rejected(): void
     {
         $this->get('/locale/xx')->assertNotFound();

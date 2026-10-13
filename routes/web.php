@@ -23,7 +23,8 @@ Route::get('/locale/{locale}', function (string $locale) {
     abort_unless(in_array($locale, SetLocale::SUPPORTED, true), 404);
     session(['locale' => $locale]);
 
-    return back();
+    // Also in a cookie, so the choice survives logging out (logout clears the session).
+    return back()->withCookie(cookie()->forever('locale', $locale));
 })->name('locale');
 
 // Crew: no accounts, the unguessable token is the credential.

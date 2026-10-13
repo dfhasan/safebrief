@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Applies the language picked with the EN / عربي switch (stored in the session).
+ * Applies the language picked with the EN / عربي switch (session first, then the long-lived cookie).
  */
 class SetLocale
 {
@@ -17,7 +17,7 @@ class SetLocale
 
     public function handle(Request $request, Closure $next): Response
     {
-        $locale = $request->session()->get('locale');
+        $locale = $request->session()->get('locale') ?? $request->cookie('locale');
 
         if (in_array($locale, self::SUPPORTED, true)) {
             app()->setLocale($locale);
